@@ -8,3 +8,16 @@
 
 <h1 align="center">T-Rex</h1>
 <p align="center">A Ghostty-based macOS terminal with vertical tabs and notifications for AI coding agents</p>
+
+## Fork changes
+
+Changes specific to this detached fork, newest first (full history in [CHANGELOG.md](CHANGELOG.md)):
+
+- **T-Rex branding** — fork-specific name, icon, and a `trex` CLI alias, isolated from stock cmux.
+- **Per-tab shell history + configurable session restore** ([#1](https://github.com/crmolinaz/trex/pull/1)) — each terminal tab keeps its own ↑ / Ctrl-R shell history, restored when the tab reopens, plus a per-tab command-history view (Command Palette → "Show Command History"); session restore on launch is configurable as always / ask / never (default ask).
+
+## License
+
+T-Rex is a modified version of [cmux](https://github.com/manaflow-ai/cmux) (© Manaflow, Inc.) and is distributed under the [GNU General Public License v3.0 or later](LICENSE). The complete corresponding source for this fork, including all modifications, is available at <https://github.com/crmolinaz/trex>.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GPL as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for details.
