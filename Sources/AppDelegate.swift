@@ -831,6 +831,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     var activeConfiguredShortcutChordPrefixForCurrentEvent: ShortcutStroke?
     var shortcutEventFocusContextCache: ShortcutEventFocusContextCache?
     private var ghosttyConfigObserver: NSObjectProtocol?
+    private var globalFontMagnificationObserver: NSObjectProtocol?
     private var ghosttyGotoSplitLeftShortcut: StoredShortcut?
     private var ghosttyGotoSplitRightShortcut: StoredShortcut?
     private var ghosttyGotoSplitUpShortcut: StoredShortcut?
@@ -1458,6 +1459,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         installMainWindowKeyObserver()
         refreshGhosttyGotoSplitShortcuts()
         installGhosttyConfigObserver()
+        installGlobalFontMagnificationObserver()
         installWindowResponderSwizzles()
         installBrowserAddressBarFocusObservers()
         installShortcutMonitor()
@@ -1793,6 +1795,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func applicationWillBecomeActive(_ notification: Notification) { if !hasVisibleMainTerminalWindow() { _ = mainWindowVisibilityController.orderFrontApplicationWindowsBeforeActivation(windows: mainWindowsForVisibilityController(), reason: .applicationWillBecomeActive) } }
 
     func applicationDidBecomeActive(_ notification: Notification) {
+        PortScanner.shared.setTrackedAgentScanningPaused(false)
         let activationWindows = mainWindowsForVisibilityController()
         if mainWindowVisibilityController.finishPendingApplicationActivationRestore(windows: activationWindows, reason: .applicationDidBecomeActive) == nil, !hasVisibleMainTerminalWindow() {
             _ = mainWindowVisibilityController.restoreApplicationWindowsAfterActivation(windows: activationWindows, reason: .applicationDidBecomeActive)
@@ -2005,6 +2008,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     func applicationWillResignActive(_ notification: Notification) {
         guard !isTerminatingApp else { return }
+        PortScanner.shared.setTrackedAgentScanningPaused(true)
         clearConfiguredShortcutChordState()
         if Self.shouldSaveSessionSnapshotOnApplicationResign(isTerminatingApp: isTerminatingApp) {
             saveSessionSnapshotAfterLoadingProcessDetectedIndexes(includeScrollback: false)
@@ -8471,6 +8475,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             // optional, so a nil runtime just leaves reads at their seeded
             // catalog default.
             .environment(\.settingsRuntime, settingsRuntime)
+            .cmuxFontMagnificationEnvironment()
 
         // Use the current key window's size for new windows so Cmd+Shift+N
         // creates a window matching the previous one's dimensions.
@@ -12366,7 +12371,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             // here would swallow the first stroke and leave the second one
             // orphaned, breaking that keystroke for the focused terminal/browser
             // input.
-            guard action != .showHideAllWindows && action != .globalSearch else { return false }
+            guard action != .showHideAllWindows && action != .globalSearch && action.allowsChordShortcut else { return false }
             guard !action.isBrowserContentShortcut else { return false }
             return KeyboardShortcutSettings.shortcut(for: action).hasChord
         }
@@ -12411,6 +12416,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             queue: .main
         ) { [weak self] _ in
             self?.refreshGhosttyGotoSplitShortcuts()
+        }
+    }
+
+    private func installGlobalFontMagnificationObserver() {
+        guard globalFontMagnificationObserver == nil else { return }
+        globalFontMagnificationObserver = NotificationCenter.default.addObserver(
+            forName: GlobalFontMagnification.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            GhosttyConfig.invalidateLoadCache()
+            MainActor.assumeIsolated {
+                self?.reloadConfiguration(
+                    source: "globalFontMagnificationDidChange",
+                    reloadSettingsFromFile: false
+                )
+            }
         }
     }
 
@@ -13034,6 +13056,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             cmuxDebugLog("handleCustomShortcut: unresolved event window context; bypassing app shortcut handling")
 #endif
             return false
+        }
+        if handleFocusedFileExplorerOpenSelectionShortcut(
+            event,
+            preferredWindow: mainWindowForShortcutEvent(event) ?? resolvedShortcutEventWindow(event) ?? shortcutRoutingActiveWindow
+        ) {
+            return true
         }
         if cmuxCloseFocusedTerminalFindForEscape(event: event, appDelegate: self) { return true }
         if matchConfiguredShortcut(event: event, action: .find) {
@@ -15257,7 +15285,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return true
         }
 
-        for action in KeyboardShortcutSettings.Action.allCases {
+        for action in KeyboardShortcutSettings.Action.allCases where canCurrentShortcutPreventStaleMenuSuppression(action) {
             if currentShortcutMatchesKeyboardShortcutEvent(event, action: action) {
                 return false
             }
@@ -15277,7 +15305,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     private func isMenuBackedShortcutAction(_ action: KeyboardShortcutSettings.Action) -> Bool {
-        action != .showHideAllWindows && action != .globalSearch && action != .clearScreenKeepScrollback
+        action != .showHideAllWindows
+            && action != .globalSearch
+            && action != .clearScreenKeepScrollback
+            && action != .fileExplorerOpenSelection
+            && action != .fileExplorerOpenSelectionFinderAlias
+    }
+
+    private func canCurrentShortcutPreventStaleMenuSuppression(_ action: KeyboardShortcutSettings.Action) -> Bool {
+        action != .fileExplorerOpenSelection && action != .fileExplorerOpenSelectionFinderAlias
     }
 
     private func isCloseShortcutAction(_ action: KeyboardShortcutSettings.Action) -> Bool {
@@ -16376,6 +16412,15 @@ private extension NSApplication {
             return
         }
         if AppDelegate.shared?.shouldSuppressStaleCmuxMenuShortcut(event: event) == true {
+            if AppDelegate.shared?.handleFocusedFileExplorerOpenSelectionShortcut(
+                event,
+                preferredWindow: event.window ?? keyWindow ?? mainWindow
+            ) == true {
+#if DEBUG
+                cmuxDebugLog("app.sendEvent routed file explorer shortcut before stale cmux menu shortcut")
+#endif
+                return
+            }
             if AppDelegate.shared?.handleConfiguredShortcutKeyEquivalent(event) == true {
 #if DEBUG
                 cmuxDebugLog("app.sendEvent routed configured shortcut before stale cmux menu shortcut")
@@ -16999,6 +17044,12 @@ private extension NSWindow {
             return true
         }
         if AppDelegate.shared?.shouldSuppressStaleCmuxMenuShortcut(event: event) == true {
+            if AppDelegate.shared?.handleFocusedFileExplorerOpenSelectionShortcut(event, preferredWindow: self) == true {
+#if DEBUG
+                cmuxDebugLog("  → consumed by file explorer shortcut before stale cmux menu shortcut")
+#endif
+                return true
+            }
             if AppDelegate.shared?.handleConfiguredShortcutKeyEquivalent(event) == true {
 #if DEBUG
                 cmuxDebugLog("  → consumed by configured shortcut before stale cmux menu shortcut")
