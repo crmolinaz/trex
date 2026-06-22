@@ -401,6 +401,7 @@ struct cmuxApp: App {
         WindowGroup {
             MainWindowBootstrapView()
                 .settingsRuntime(settingsRuntime)
+                .cmuxFontMagnificationEnvironment()
                 .cmuxAppearanceColorScheme(appearanceMode)
                 .onAppear {
                     SettingsWindowPresenter.configure(
@@ -553,14 +554,12 @@ struct cmuxApp: App {
                     appDelegate.openDebugColorComparisonWorkspaces(nil)
                 }
 
-                Button(
-                    String(
-                        localized: "debug.menu.openStressWorkspacesWithLoadedSurfaces",
-                        defaultValue: "Open Stress Workspaces and Load All Terminals"
-                    )
-                ) {
-                    appDelegate.openDebugStressWorkspacesWithLoadedSurfaces(nil)
-                }
+                CanvasDebugMenuButtons(
+                    workspace: activeTabManager.selectedWorkspace,
+                    openStressWorkspacesWithLoadedSurfaces: {
+                        appDelegate.openDebugStressWorkspacesWithLoadedSurfaces(nil)
+                    }
+                )
 
                 Divider()
                 Menu("Debug Windows") {
@@ -882,6 +881,7 @@ struct cmuxApp: App {
         Window(String(localized: "settings.title", defaultValue: "Settings"), id: SettingsWindowPresenter.windowID) {
             SettingsWindowRoot(runtime: settingsRuntime)
                 .settingsRuntime(settingsRuntime)
+                .cmuxFontMagnificationEnvironment()
                 .background(WindowAccessor(dedupeByWindow: false) { window in
                     SettingsWindowPresenter.configure(window: window)
                 })
@@ -896,6 +896,7 @@ struct cmuxApp: App {
         Window(String(localized: "settings.config.windowTitle", defaultValue: "Config"), id: ConfigSettingsView.windowID) {
             ConfigSettingsView()
                 .settingsRuntime(settingsRuntime)
+                .cmuxFontMagnificationEnvironment()
                 .cmuxAppearanceColorScheme(appearanceMode)
         }
     }
@@ -1642,7 +1643,7 @@ private struct DebugWindowControlsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Debug Window Controls")
-                    .font(.headline)
+                    .cmuxFont(.headline)
 
                 GroupBox("Open") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -1788,7 +1789,7 @@ private struct DebugWindowControlsView: View {
                             Text("Preview")
                             Spacer()
                             Image(systemName: selectedDevToolsIconOption.rawValue)
-                                .font(.system(size: 12, weight: .medium))
+                                .cmuxFont(size: 12, weight: .medium)
                                 .foregroundStyle(selectedDevToolsColorOption.color)
                         }
 
@@ -1810,7 +1811,7 @@ private struct DebugWindowControlsView: View {
                             DebugWindowConfigSnapshot.copyCombinedToPasteboard()
                         }
                         Text("Copies sidebar, background, menu bar, and browser devtools settings as one payload.")
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -1923,7 +1924,7 @@ private struct BrowserProfilePopoverDebugView: View {
                         defaultValue: "Browser Profile Popover"
                     )
                 )
-                .font(.headline)
+                .cmuxFont(.headline)
 
                 Text(
                     String(
@@ -1931,7 +1932,7 @@ private struct BrowserProfilePopoverDebugView: View {
                         defaultValue: "Tune the profile popover padding live while comparing it against the browser toolbar menu."
                     )
                 )
-                .font(.caption)
+                .cmuxFont(.caption)
                 .foregroundStyle(.secondary)
 
                 GroupBox(
@@ -1989,7 +1990,7 @@ private struct BrowserProfilePopoverDebugView: View {
                         defaultValue: "Changes apply live to the browser profile popover."
                     )
                 )
-                .font(.caption)
+                .cmuxFont(.caption)
                 .foregroundStyle(.secondary)
 
                 Spacer(minLength: 0)
@@ -2003,16 +2004,16 @@ private struct BrowserProfilePopoverDebugView: View {
     private var profilePopoverPreview: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "browser.profile.menu.title", defaultValue: "Profiles"))
-                .font(.system(size: 12, weight: .semibold))
+                .cmuxFont(size: 12, weight: .semibold)
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .semibold))
+                        .cmuxFont(size: 10, weight: .semibold)
                         .frame(width: 12, alignment: .center)
                     Text(String(localized: "browser.profile.default", defaultValue: "Default"))
-                        .font(.system(size: 12))
+                        .cmuxFont(size: 12)
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, 8)
@@ -2026,10 +2027,10 @@ private struct BrowserProfilePopoverDebugView: View {
             Divider()
 
             Text(String(localized: "browser.profile.new", defaultValue: "New Profile..."))
-                .font(.system(size: 12))
+                .cmuxFont(size: 12)
 
             Text(String(localized: "menu.view.importFromBrowser", defaultValue: "Import Browser Data…"))
-                .font(.system(size: 12))
+                .cmuxFont(size: 12)
         }
         .padding(.horizontal, BrowserProfilePopoverDebugSettings.resolvedHorizontalPadding(horizontalPaddingRaw))
         .padding(.vertical, BrowserProfilePopoverDebugSettings.resolvedVerticalPadding(verticalPaddingRaw))
@@ -2049,7 +2050,7 @@ private struct BrowserProfilePopoverDebugView: View {
             Text(label)
             Slider(value: value, in: range, step: 1)
             Text(String(format: "%.0f", value.wrappedValue))
-                .font(.caption)
+                .cmuxFont(.caption)
                 .monospacedDigit()
                 .frame(width: 32, alignment: .trailing)
         }
@@ -2099,10 +2100,10 @@ private struct BrowserImportHintDebugView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Browser Import Hint")
-                    .font(.headline)
+                    .cmuxFont(.headline)
 
                 Text("Try lighter blank-tab import surfaces and dismissal states without touching the permanent Browser settings home.")
-                    .font(.caption)
+                    .cmuxFont(.caption)
                     .foregroundStyle(.secondary)
 
                 GroupBox("Variant") {
@@ -2115,7 +2116,7 @@ private struct BrowserImportHintDebugView: View {
                         .pickerStyle(.menu)
 
                         Text(description(for: selectedVariant))
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -2128,10 +2129,10 @@ private struct BrowserImportHintDebugView: View {
                         Toggle("Pretend the user dismissed it", isOn: $isDismissed)
 
                         Text("Current blank-tab placement: \(placementTitle(presentation.blankTabPlacement))")
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .foregroundStyle(.secondary)
                         Text("Settings status: \(settingsStatusTitle(presentation.settingsStatus))")
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(.top, 2)
@@ -2164,7 +2165,7 @@ private struct BrowserImportHintDebugView: View {
                         Text("Toolbar chip: most subtle, best when the hint should stay out of the content area.")
                         Text("Settings only: no in-browser nudge, Browser settings becomes the only permanent home.")
                     }
-                    .font(.caption)
+                    .cmuxFont(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.top, 2)
                 }
@@ -2297,7 +2298,7 @@ private struct AcknowledgmentsView: View {
     var body: some View {
         ScrollView {
             Text(content)
-                .font(.system(.body, design: .monospaced))
+                .cmuxFont(.body, design: .monospaced)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -2317,7 +2318,7 @@ private struct FileExplorerStyleDebugView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("File Explorer Style")
-                .font(.headline)
+                .cmuxFont(.headline)
 
             ForEach(FileExplorerStyle.allCases, id: \.rawValue) { style in
                 HStack(spacing: 8) {
@@ -2332,9 +2333,9 @@ private struct FileExplorerStyleDebugView: View {
                                 .frame(width: 16)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(style.label)
-                                    .font(.system(size: 13, weight: .medium))
+                                    .cmuxFont(size: 13, weight: .medium)
                                 Text(styleDescription(style))
-                                    .font(.system(size: 11))
+                                    .cmuxFont(size: 11)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -2356,9 +2357,9 @@ private struct FileExplorerStyleDebugView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Current: \(currentStyle.label)")
-                    .font(.system(size: 11, weight: .medium))
+                    .cmuxFont(size: 11, weight: .medium)
                 Text("Row: \(Int(currentStyle.rowHeight))pt, Indent: \(Int(currentStyle.indentation))pt, Icon: \(Int(currentStyle.iconSize))pt")
-                    .font(.system(size: 11, design: .monospaced))
+                    .cmuxFont(size: 11, design: .monospaced)
                     .foregroundColor(.secondary)
             }
         }
@@ -2479,12 +2480,12 @@ private struct AboutPanelView: View {
             VStack(alignment: .center, spacing: 32) {
                 VStack(alignment: .center, spacing: 8) {
                     Text(AppBranding.displayName)
+                        .cmuxFont(.title)
                         .bold()
-                        .font(.title)
                     Text(String(localized: "about.description", defaultValue: "A Ghostty-based terminal with vertical tabs\nand a notification panel for macOS."))
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                        .font(.caption)
+                        .cmuxFont(.caption)
                         .tint(.secondary)
                         .opacity(0.8)
                 }
@@ -2523,7 +2524,7 @@ private struct AboutPanelView: View {
 
                 if let copy = copyright, !copy.isEmpty {
                     Text(copy)
-                        .font(.caption)
+                        .cmuxFont(.caption)
                         .textSelection(.enabled)
                         .tint(.secondary)
                         .opacity(0.8)
@@ -2595,7 +2596,7 @@ private struct SidebarDebugView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text(String(localized: "settings.section.sidebarAppearance", defaultValue: "Sidebar"))
-                    .font(.headline)
+                    .cmuxFont(.headline)
 
                 Toggle(String(localized: "settings.sidebarAppearance.matchTerminalBackground", defaultValue: "Match Terminal Background"), isOn: $matchTerminalBackground)
 
@@ -2635,7 +2636,7 @@ private struct SidebarDebugView: View {
                             Text("Strength")
                             Slider(value: $sidebarBlurOpacity, in: 0...1)
                             Text(String(format: "%.0f%%", sidebarBlurOpacity * 100))
-                                .font(.caption)
+                                .cmuxFont(.caption)
                                 .frame(width: 44, alignment: .trailing)
                         }
                     }
@@ -2650,7 +2651,7 @@ private struct SidebarDebugView: View {
                             Text("Opacity")
                             Slider(value: $sidebarTintOpacity, in: 0...0.7)
                             Text(String(format: "%.0f%%", sidebarTintOpacity * 100))
-                                .font(.caption)
+                                .cmuxFont(.caption)
                                 .frame(width: 44, alignment: .trailing)
                         }
                     }
@@ -2662,7 +2663,7 @@ private struct SidebarDebugView: View {
                         Text("Corner Radius")
                         Slider(value: $sidebarCornerRadius, in: 0...20)
                         Text(String(format: "%.0f", sidebarCornerRadius))
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .frame(width: 32, alignment: .trailing)
                     }
                     .padding(.top, 2)
@@ -2682,7 +2683,7 @@ private struct SidebarDebugView: View {
                             Button(String(localized: "sidebar.debug.resetSelectionColor", defaultValue: "Reset to Default")) {
                                 sidebarSelectionColorHex = nil
                             }
-                            .font(.caption)
+                            .cmuxFont(.caption)
                         }
                     }
                     .padding(.top, 2)
@@ -2692,7 +2693,7 @@ private struct SidebarDebugView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Toggle("Render branch list vertically", isOn: $sidebarBranchVerticalLayout)
                         Text("When enabled, each branch appears on its own line in the sidebar.")
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .foregroundColor(.secondary)
                     }
                     .padding(.top, 2)
@@ -2836,7 +2837,7 @@ private struct MenuBarExtraDebugView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Menu Bar Extra Icon")
-                    .font(.headline)
+                    .cmuxFont(.headline)
 
                 GroupBox("Preview Count") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -2847,7 +2848,7 @@ private struct MenuBarExtraDebugView: View {
                                 Text("Unread Count")
                                 Spacer()
                                 Text("\(previewCount)")
-                                    .font(.caption)
+                                    .cmuxFont(.caption)
                                     .monospacedDigit()
                             }
                         }
@@ -2906,7 +2907,7 @@ private struct MenuBarExtraDebugView: View {
                 }
 
                 Text("Tip: enable override count, then tune until the menu bar icon looks right.")
-                    .font(.caption)
+                    .cmuxFont(.caption)
                     .foregroundColor(.secondary)
 
                 Spacer(minLength: 0)
@@ -2940,7 +2941,7 @@ private struct MenuBarExtraDebugView: View {
             Text(label)
             Slider(value: value, in: range)
             Text(String(format: format, value.wrappedValue))
-                .font(.caption)
+                .cmuxFont(.caption)
                 .monospacedDigit()
                 .frame(width: 58, alignment: .trailing)
         }
@@ -2998,7 +2999,7 @@ private struct SplitButtonLayoutDebugView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(String(localized: "debug.splitButtonLayout.title", defaultValue: "Button Backdrop Color"))
-                .font(.headline)
+                .cmuxFont(.headline)
 
             ForEach(options, id: \.0) { id, label in
                 HStack {
@@ -3011,7 +3012,7 @@ private struct SplitButtonLayoutDebugView: View {
             }
 
             Text(String(localized: "debug.splitButtonLayout.liveNote", defaultValue: "Changes apply live."))
-                .font(.caption)
+                .cmuxFont(.caption)
                 .foregroundColor(.secondary)
         }
         .padding(16)
@@ -3329,9 +3330,9 @@ private struct TabBarBackdropLabView: View {
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(String(localized: "debug.tabBarBackdropLab.title", defaultValue: "Tab Bar Backdrop Lab"))
-                        .font(.headline)
+                        .cmuxFont(.headline)
                     Text(String(localized: "debug.tabBarBackdropLab.subtitle", defaultValue: "Live Bonsplit tab bars with overflow tabs under the split buttons. The window background is transparent."))
-                        .font(.caption)
+                        .cmuxFont(.caption)
                         .foregroundStyle(.secondary)
                 }
 
@@ -3425,7 +3426,7 @@ private struct TabBarBackdropLabView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("\(title) \(displayValue)")
-                .font(.caption.monospacedDigit())
+                .cmuxFont(.caption, monospacedDigit: true)
                 .lineLimit(1)
             Slider(value: value, in: range)
                 .frame(width: width)
@@ -3448,10 +3449,10 @@ private struct TabBarBackdropLabSample: View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(variant.title)
-                    .font(.caption.weight(.semibold))
+                    .cmuxFont(.caption, weight: .semibold)
                     .foregroundStyle(.primary)
                 Text(variant.detail)
-                    .font(.caption2)
+                    .cmuxFont(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -3588,7 +3589,7 @@ private struct TabBarBackdropLabTitlebar: View {
                 Circle().fill(Color.green.opacity(0.75)).frame(width: 8, height: 8)
             }
             Text(title)
-                .font(.caption2.weight(.medium))
+                .cmuxFont(.caption2, weight: .medium)
                 .lineLimit(1)
             Spacer(minLength: 0)
         }
@@ -3611,7 +3612,7 @@ private struct TabBarBackdropLabSidebar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.caption2.weight(.bold))
+                .cmuxFont(.caption2, weight: .bold)
             ForEach(0..<4, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(index == 0 ? Color.accentColor.opacity(0.85) : Color.white.opacity(0.12))
@@ -3646,7 +3647,7 @@ private struct TabBarBackdropLabTerminalPane: View {
                     .foregroundStyle(Color.white.opacity(0.52))
                 Spacer(minLength: 0)
             }
-            .font(.system(size: 11, design: .monospaced))
+            .cmuxFont(size: 11, design: .monospaced)
             .padding(10)
         }
     }
@@ -3699,7 +3700,7 @@ private struct BackgroundDebugView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Window Background Glass")
-                    .font(.headline)
+                    .cmuxFont(.headline)
 
                 GroupBox("Glass Effect") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -3727,7 +3728,7 @@ private struct BackgroundDebugView: View {
                             Slider(value: $bgGlassTintOpacity, in: 0...0.8)
                                 .disabled(!bgGlassEnabled)
                             Text(String(format: "%.0f%%", bgGlassTintOpacity * 100))
-                                .font(.caption)
+                                .cmuxFont(.caption)
                                 .frame(width: 44, alignment: .trailing)
                         }
                     }
@@ -3749,7 +3750,7 @@ private struct BackgroundDebugView: View {
                 }
 
                 Text("Tint changes apply live. Enable/disable requires reload.")
-                    .font(.caption)
+                    .cmuxFont(.caption)
                     .foregroundColor(.secondary)
 
                 Spacer(minLength: 0)
@@ -3884,7 +3885,7 @@ private struct StartupAppearanceDebugView: View {
                         defaultValue: "Startup Appearance Debug"
                     )
                 )
-                    .font(.headline)
+                    .cmuxFont(.headline)
 
                 GroupBox(
                     String(
@@ -3907,7 +3908,7 @@ private struct StartupAppearanceDebugView: View {
                         .pickerStyle(.menu)
 
                         Text(selectedProfile.detail)
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
 
@@ -3957,7 +3958,7 @@ private struct StartupAppearanceDebugView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         ScrollView {
                             Text(selectedConfigText)
-                                .font(.system(.caption, design: .monospaced))
+                                .cmuxFont(.caption, design: .monospaced)
                                 .textSelection(.enabled)
                                 .frame(maxWidth: .infinity, alignment: .topLeading)
                                 .padding(8)
@@ -4010,7 +4011,7 @@ private struct StartupAppearanceDebugView: View {
                                 defaultValue: "Reloads the running app through Ghostty config update, matching startup theme resolution without editing config files."
                             )
                         )
-                            .font(.caption)
+                            .cmuxFont(.caption)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -4136,7 +4137,7 @@ private struct AboutPropertyRow: View {
                 textView
             }
         }
-        .font(.callout)
+        .cmuxFont(.callout)
         .textSelection(.enabled)
         .frame(maxWidth: .infinity)
     }
