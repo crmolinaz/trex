@@ -82,7 +82,7 @@ final class HostSettingsActions: SettingsHostActions {
     }
 
     func sendFeedback() {
-        guard let url = URL(string: "https://github.com/crmolinaz/cmux/issues/new") else { return }
+        guard let url = URL(string: "https://github.com/crmolinaz/trex/issues/new") else { return }
         NSWorkspace.shared.open(url)
     }
 
