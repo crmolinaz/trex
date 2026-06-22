@@ -2090,7 +2090,15 @@ enum SessionScrollbackReplayStore {
     }
 
     private static func writeReplayFile(contents: String, tempDirectory: URL) -> URL? {
-        guard let data = contents.data(using: .utf8) else { return nil }
+        // The shell integration replays this file with `cat` before printing the
+        // first prompt. If the captured scrollback's last line has no trailing
+        // newline (it usually ends on the old prompt line), the cursor stays
+        // mid-line and zsh draws its PROMPT_EOL_MARK — a reverse-video "%" — just
+        // before the restored prompt. Guarantee exactly one trailing newline so
+        // the cursor returns to column 0 and no marker appears (issue: restored
+        // sessions showing a stray "%").
+        let replayContents = contents.hasSuffix("\n") ? contents : contents + "\n"
+        guard let data = replayContents.data(using: .utf8) else { return nil }
         let directory = tempDirectory.appendingPathComponent(directoryName, isDirectory: true)
 
         do {
