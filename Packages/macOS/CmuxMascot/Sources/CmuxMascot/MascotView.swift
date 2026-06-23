@@ -6,8 +6,8 @@ public import SwiftUI
 public struct MascotStripView: View {
     private let controller: MascotController
 
-    /// The strip's height, in points.
-    public static let height: CGFloat = 60
+    /// The strip's height, in points (52pt mascot + ~10pt breathing room each side).
+    public static let height: CGFloat = 72
 
     public init(controller: MascotController) {
         self.controller = controller
@@ -19,13 +19,17 @@ public struct MascotStripView: View {
                 .interpolation(.none)
                 .resizable()
                 .scaledToFit()
-                .padding(.vertical, 4)
+                .padding(.vertical, 10)
         }
         .frame(maxWidth: .infinity)
         .frame(height: Self.height)
         .background(.quaternary.opacity(0.5))
         .overlay(alignment: .bottom) {
             Divider().opacity(0.5)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            controller.wink()
         }
         .accessibilityElement()
         .accessibilityLabel(Text(

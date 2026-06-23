@@ -18,8 +18,8 @@ struct MascotSpriteTests {
     @Test
     func animatorAdvancesAndWrapsWithinClip() {
         let animator = MascotAnimator()
-        animator.setClip(.run)
-        let count = MascotClip.run.frameNames.count
+        animator.setClip(.idle)
+        let count = MascotClip.idle.frameNames.count
         #expect(count > 1)
         #expect(animator.frameIndex == 0)
 
@@ -35,12 +35,12 @@ struct MascotSpriteTests {
     @Test
     func switchingClipResetsToFirstFrame() {
         let animator = MascotAnimator()
-        animator.setClip(.run)
+        animator.setClip(.idle)
         animator.advance()
         #expect(animator.frameIndex == 1)
 
-        animator.setClip(.idle)
+        animator.setClip(.blink)
         #expect(animator.frameIndex == 0)
-        #expect(animator.currentFrameName == MascotClip.idle.frameNames.first)
+        #expect(animator.currentFrameName == MascotClip.blink.frameNames.first)
     }
 }

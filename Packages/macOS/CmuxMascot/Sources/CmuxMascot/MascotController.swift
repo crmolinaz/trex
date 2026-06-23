@@ -26,16 +26,12 @@ public final class MascotController {
         MascotSprite.preload()
     }
 
-    /// Shows the mascot: it runs in, then settles into an idle loop.
+    /// Shows the mascot in its idle loop.
     public func show() {
         guard !isVisible else { return }
         isVisible = true
-        animator.setClip(.run)
+        animator.setClip(.idle)
         animator.start()
-        Task { [weak animator] in
-            try? await Task.sleep(for: .milliseconds(1200))
-            animator?.setClip(.idle)
-        }
     }
 
     /// Hides the mascot and stops the animation loop.
@@ -50,6 +46,17 @@ public final class MascotController {
             hide()
         } else {
             show()
+        }
+    }
+
+    /// Briefly closes the eye (a wink) then returns to idle. Driven by a tap on
+    /// the mascot.
+    public func wink() {
+        guard isVisible else { return }
+        animator.setClip(.blink)
+        Task { [weak animator] in
+            try? await Task.sleep(for: .milliseconds(220))
+            animator?.setClip(.idle)
         }
     }
 }

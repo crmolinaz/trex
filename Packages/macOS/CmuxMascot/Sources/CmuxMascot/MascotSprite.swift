@@ -5,15 +5,13 @@ import Foundation
 /// images bundled with the package (see `scripts/generate-trex-sprites.swift`).
 enum MascotClip: CaseIterable {
     case idle
-    case run
     case blink
 
-    /// Frame asset basenames, in playback order. The `run` cycle revisits the
-    /// neutral mid-stride frame so the leg motion reads as a loop.
+    /// Frame asset basenames, in playback order. `idle` gently bobs; `blink` is
+    /// the eye-closed frame used for the tap "wink".
     var frameNames: [String] {
         switch self {
         case .idle: return ["trex-idle-0", "trex-idle-1"]
-        case .run: return ["trex-run-0", "trex-run-1", "trex-run-2", "trex-run-1"]
         case .blink: return ["trex-blink-0"]
         }
     }
