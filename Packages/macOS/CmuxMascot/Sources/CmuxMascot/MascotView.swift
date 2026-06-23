@@ -11,6 +11,7 @@ struct MascotView: View {
             .resizable()
             .scaledToFit()
             .padding(8)
+            .frame(width: 168, height: 184)
             .accessibilityLabel(Text(
                 String(
                     localized: "mascot.accessibilityLabel",
