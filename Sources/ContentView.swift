@@ -6525,6 +6525,7 @@ struct ContentView: View {
             )
         )
         contributions.append(contentsOf: Self.commandPaletteViewCommandContributions())
+        contributions.append(contentsOf: Self.commandPaletteMascotContributions())
         contributions.append(contentsOf: Self.commandPaletteCanvasCommandContributions())
         contributions.append(
             CommandPaletteCommandContribution(
@@ -7705,6 +7706,7 @@ struct ContentView: View {
             workspacePresentationMode = WorkspacePresentationModeSettings.Mode.standard.rawValue
         }
         registerViewCommandHandlers(&registry)
+        registerMascotCommandHandlers(&registry)
         registerCanvasCommandHandlers(&registry)
         registry.register(commandId: "palette.showNotifications") {
             AppDelegate.shared?.toggleNotificationsPopover(animated: false)
